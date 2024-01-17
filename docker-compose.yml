@@ -1,0 +1,74 @@
+services:
+  web:
+    image: httpd:2.4
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - .:/var/www/html
+      - ./docker/web/logs:/var/log/httpd
+      - ./docker/web/cert:/etc/ssl/private
+      - ./docker/web/conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./docker/web/conf/my-httpd.conf:/usr/local/apache2/conf/extra/my-httpd.conf
+    restart: always
+    networks: 
+      - mynetwork
+  app:
+    build: ./docker/app
+    ports:
+      - '9000:9000'
+    volumes:
+      - .:/var/www/html
+      - ./docker/app/logs:/var/log/xdebug
+    networks: 
+      - mynetwork
+  db:
+    image: mariadb:latest
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./docker/db/logs:/var/log/mysql
+      - ./docker/db/data:/var/lib/mysql
+      - ./docker/db/init/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    networks: 
+      - mynetwork
+  redis:
+    image: 'redis:alpine'
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./docker/redis/data:/data'
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      retries: 3
+      timeout: 5s
+    networks: 
+      - mynetwork
+  mail:
+    build: ./docker/mail
+    ports:
+      - '25:25'
+      - '587:587'
+    volumes:
+      - ./docker/mail/main.cf:/etc/postfix/main.cf
+      - ./docker/mail/cert.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem
+      - ./docker/mail/key.pem:/etc/ssl/private/ssl-cert-snakeoil.key
+    restart: always
+    networks: 
+      - mynetwork
+networks:
+  mynetwork:
+    ipam:
+      config:
+        - subnet: 172.16.0.0/16
