@@ -1,4 +1,4 @@
-# デモ環境構築用docker-composer
+# 開発環境構築用docker-composer
 
 ## ライセンス
 
