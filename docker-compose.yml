@@ -5,7 +5,7 @@ services:
       - '80:80'
       - '443:443'
     volumes:
-      - .:/var/www/html
+      - ./workspace:/var/www/html
       - ./docker/web/logs:/var/log/httpd
       - ./docker/web/cert:/etc/ssl/private
       - ./docker/web/conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
@@ -18,8 +18,9 @@ services:
     ports:
       - '9000:9000'
     volumes:
-      - .:/var/www/html
+      - ./workspace:/var/www/html
       - ./docker/app/logs:/var/log/xdebug
+      - ./docker/app/ini/php.ini:/usr/local/etc/php/php.ini
     networks: 
       - mynetwork
   db:
@@ -32,11 +33,11 @@ services:
       - ./docker/db/init/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ROOT_PASSWORD: '${MYSQL_PASSWORD}'
       MYSQL_ROOT_HOST: '%'
-      MYSQL_DATABASE: '${DB_DATABASE}'
-      MYSQL_USER: '${DB_USERNAME}'
-      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_USER: '${MYSQL_USERNAME}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
       MYSQL_ALLOW_EMPTY_PASSWORD: 1
     networks: 
       - mynetwork
@@ -56,15 +57,9 @@ services:
     networks: 
       - mynetwork
   mail:
-    build: ./docker/mail
+    image: axllent/mailpit:latest
     ports:
-      - '25:25'
-      - '587:587'
-    volumes:
-      - ./docker/mail/main.cf:/etc/postfix/main.cf
-      - ./docker/mail/cert.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem
-      - ./docker/mail/key.pem:/etc/ssl/private/ssl-cert-snakeoil.key
-    restart: always
+      - 8025:8025
     networks: 
       - mynetwork
 networks:
