@@ -18,7 +18,11 @@
     ```
     docker-compose up -d
     ```
-7. https://github.com/joyrswd/memodoc のインストール手順3以降を実施する  
+7. 下記コマンドでappコンテナの中に入る
+    ```
+    docker-compose exec app bash
+    ```
+8. https://github.com/joyrswd/memodoc のインストール手順3以降を実施する
 
 以上
 
